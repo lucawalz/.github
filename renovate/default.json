@@ -19,6 +19,11 @@
       "minimumReleaseAge": "7 days",
       "automerge": false,
       "labels": ["dependencies", "held"]
+    },
+    {
+      "description": "Let images from registries that publish no release timestamp pass the release age wait",
+      "matchDatasources": ["docker"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
     }
   ]
 }
