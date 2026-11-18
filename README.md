@@ -26,6 +26,37 @@ Repositories updated by Renovate extend the shared default preset in `renovate/d
 }
 ```
 
+## Repository settings
+
+`tofu/` declares the settings, rulesets, labels and release App secrets of every public repository with OpenTofu and the `integrations/github` provider. Each repository is one call of `tofu/modules/standard` in `tofu/repos.tf`; its declared exceptions (extra labels, extra rulesets, the required check) are inputs of that call. Labels outside the standard and the declared extras are left alone.
+
+The owner runs it from the Mac only:
+
+```
+just plan
+just apply
+```
+
+Both read these environment variables:
+
+| Variable | Value |
+|---|---|
+| `GITHUB_TOKEN` | token with admin on the managed repositories |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | R2 token scoped to the `lucawalz-tofu-state` bucket |
+| `AWS_ENDPOINT_URL_S3` | `https://<account-id>.r2.cloudflarestorage.com` |
+| `TF_VAR_state_passphrase` | state and plan encryption passphrase, at least 16 characters |
+| `TF_VAR_release_app_id`, `TF_VAR_release_app_private_key` | release App ID and private key |
+
+### Manual steps
+
+The provider (v6.13.0) cannot manage these settings, so the owner sets them once per repository with `gh`:
+
+- Private vulnerability reporting, every public repository: `gh api -X PUT repos/lucawalz/<repo>/private-vulnerability-reporting`
+- Immutable releases, released tier: `gh api -X PUT repos/lucawalz/<repo>/immutable-releases`
+- Pull requests from collaborators only, deployed and config tiers: `gh api -X PATCH repos/lucawalz/<repo> -f pull_request_creation_policy=collaborators_only`
+- Account plan, before each apply: `gh api user -q .plan.name` prints `pro`
+- Release App: created once with contents, pull requests and issues write, installed on every released repository
+
 ## Checks
 
 ```

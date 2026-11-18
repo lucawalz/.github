@@ -10,6 +10,7 @@ permissions:
 
 env:
   ACTIONLINT_VERSION: 1.7.12
+  TOFU_VERSION: 1.13.9
 
 jobs:
   actionlint:
@@ -52,9 +53,24 @@ jobs:
           node-version: 24
       - run: scripts/check-renovate.sh
 
+  tofu:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: opentofu/setup-opentofu@a1320f892987e89d278cc92dc5adc984fb93aca4 # v2.0.2
+        with:
+          tofu_version: ${{ env.TOFU_VERSION }}
+          tofu_wrapper: false
+      - run: tofu fmt -check -recursive tofu
+      - run: tofu -chdir=tofu init -backend=false -input=false
+      - run: tofu -chdir=tofu validate
+      - run: tofu -chdir=tofu test
+
   ci-gate:
     if: always()
-    needs: [actionlint, zizmor, files, release-guard, renovate]
+    needs: [actionlint, zizmor, files, release-guard, renovate, tofu]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
