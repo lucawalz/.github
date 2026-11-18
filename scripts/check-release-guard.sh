@@ -5,6 +5,7 @@ readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKFLOW=".github/workflows/release.yml"
 readonly TOKEN_ACTION="actions/create-github-app-token@"
 readonly MESSAGE="release App secrets missing"
+readonly GUARD='if [ -z "$APP_ID" ] || [ -z "$APP_KEY" ]; then'
 
 cd "$ROOT"
 failures=0
@@ -35,6 +36,7 @@ for job in "${jobs[@]}"; do
   key_ref="$("${yq[@]}" ".jobs.\"$job\".steps[0].env.APP_KEY // \"\"" "$WORKFLOW")"
 
   [[ "$guard_run" == *"$MESSAGE"* ]] || { fail "$job: first step is not the secrets guard"; continue; }
+  [[ "$guard_run" == *"$GUARD"* ]] || fail "$job: guard is not an if statement on APP_ID and APP_KEY"
   ((token_index > 0)) || fail "$job: token step runs before the guard"
   [[ "$id_ref" == '${{ secrets.RELEASE_APP_ID }}' ]] || fail "$job: guard env APP_ID does not read RELEASE_APP_ID"
   [[ "$key_ref" == '${{ secrets.RELEASE_APP_PRIVATE_KEY }}' ]] || fail "$job: guard env APP_KEY does not read RELEASE_APP_PRIVATE_KEY"
