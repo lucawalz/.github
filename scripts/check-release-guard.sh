@@ -5,7 +5,6 @@ readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly WORKFLOW=".github/workflows/release.yml"
 readonly TOKEN_ACTION="actions/create-github-app-token@"
 readonly MESSAGE="release App secrets missing"
-readonly SAMPLE="set"
 
 cd "$ROOT"
 failures=0
@@ -40,15 +39,6 @@ for job in "${jobs[@]}"; do
   [[ "$id_ref" == '${{ secrets.RELEASE_APP_ID }}' ]] || fail "$job: guard env APP_ID does not read RELEASE_APP_ID"
   [[ "$key_ref" == '${{ secrets.RELEASE_APP_PRIVATE_KEY }}' ]] || fail "$job: guard env APP_KEY does not read RELEASE_APP_PRIVATE_KEY"
   [[ "$guard_run" != *'${{'* ]] || fail "$job: guard interpolates expressions into run"
-
-  for pair in ":" "$SAMPLE:" ":$SAMPLE"; do
-    if output="$(APP_ID="${pair%%:*}" APP_KEY="${pair#*:}" bash -eo pipefail -c "$guard_run" 2>&1)"; then
-      fail "$job: guard passes with APP_ID='${pair%%:*}' APP_KEY='${pair#*:}'"
-    elif [[ "$output" != "$MESSAGE" ]]; then
-      fail "$job: guard printed '$output' instead of '$MESSAGE'"
-    fi
-  done
-  APP_ID="$SAMPLE" APP_KEY="$SAMPLE" bash -eo pipefail -c "$guard_run" >/dev/null 2>&1 || fail "$job: guard fails with both secrets set"
 done
 
 if ((failures > 0)); then

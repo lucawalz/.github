@@ -59,55 +59,6 @@ jobs:
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
-      - if: steps.release-please.outputs.release_created
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - if: steps.release-please.outputs.release_created
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          REPO: ${{ github.repository }}
-          TAG: ${{ steps.release-please.outputs.tag_name }}
-          RELEASE_URL: ${{ steps.release-please.outputs.html_url }}
-          CLOSING_ISSUES_QUERY: >-
-            query($owner: String!, $name: String!, $number: Int!) {
-            repository(owner: $owner, name: $name) {
-            pullRequest(number: $number) {
-            closingIssuesReferences(first: 100) { nodes { number repository { nameWithOwner } } }
-            } } }
-        run: |
-          shopt -s inherit_errexit
-          if ! prev="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null)"; then
-            echo "no tag before $TAG, nothing to comment"
-            exit 0
-          fi
-          export BODY="Released in [$TAG]($RELEASE_URL)."
-
-          mark_released() {
-            local number="$1" existing
-            existing="$(gh api --paginate "repos/$REPO/issues/$number/comments?per_page=100" --jq '.[] | select(.body == env.BODY) | .id')"
-            if [ -z "$existing" ]; then
-              gh api -X POST "repos/$REPO/issues/$number/comments" -f body="$BODY" --silent
-            fi
-            gh api -X POST "repos/$REPO/issues/$number/labels" -f "labels[]=$RELEASED_LABEL" --silent
-          }
-
-          prs="$(git rev-list "$prev..$TAG" | while read -r sha; do
-            gh api "repos/$REPO/commits/$sha/pulls" \
-              --jq '.[] | select(.merged_at != null and (.head.ref | startswith(env.RELEASE_BRANCH_PREFIX) | not)) | .number'
-          done | sort -nu)"
-
-          issues=""
-          for pr in $prs; do
-            mark_released "$pr"
-            issues+="$(gh api graphql -F owner="${REPO%%/*}" -F name="${REPO#*/}" -F number="$pr" -f query="$CLOSING_ISSUES_QUERY" \
-              --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | select(.repository.nameWithOwner == env.REPO) | .number')"$'\n'
-          done
-
-          sort -nu <<<"$issues" | while read -r issue; do
-            [ -z "$issue" ] || mark_released "$issue"
-          done
 
   goreleaser:
     needs: release
@@ -176,3 +127,83 @@ jobs:
         run: |
           cp "$BUNDLE_PATH" "$RUNNER_TEMP/$BUNDLE_NAME"
           gh release upload "$TAG" "$RUNNER_TEMP/$BUNDLE_NAME"
+
+  publish:
+    needs: [release, goreleaser, attest]
+    if: >-
+      !cancelled() && needs.release.outputs.release-created == 'true'
+      && needs.goreleaser.result != 'failure' && needs.attest.result != 'failure'
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          APP_ID: ${{ secrets.RELEASE_APP_ID }}
+          APP_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+        run: |
+          [ -n "$APP_ID" ] && [ -n "$APP_KEY" ] || { echo "release App secrets missing" >&2; exit 1; }
+      - id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.release.outputs.tag-name }}
+        run: |
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" = true ]; then
+            gh release edit "$TAG" --draft=false
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: comment-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-pull-requests: write
+          permission-issues: write
+      - env:
+          GH_TOKEN: ${{ steps.comment-token.outputs.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ needs.release.outputs.tag-name }}
+          CLOSING_ISSUES_QUERY: >-
+            query($owner: String!, $name: String!, $number: Int!) {
+            repository(owner: $owner, name: $name) {
+            pullRequest(number: $number) {
+            closingIssuesReferences(first: 100) { nodes { number repository { nameWithOwner } } }
+            } } }
+        run: |
+          shopt -s inherit_errexit
+          if ! prev="$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null)"; then
+            echo "no tag before $TAG, nothing to comment"
+            exit 0
+          fi
+          export BODY="Released in [$TAG]($GITHUB_SERVER_URL/$REPO/releases/tag/$TAG)."
+
+          mark_released() {
+            local number="$1" existing
+            existing="$(gh api --paginate "repos/$REPO/issues/$number/comments?per_page=100" --jq '.[] | select(.body == env.BODY) | .id')"
+            if [ -z "$existing" ]; then
+              gh api -X POST "repos/$REPO/issues/$number/comments" -f body="$BODY" --silent
+            fi
+            gh api -X POST "repos/$REPO/issues/$number/labels" -f "labels[]=$RELEASED_LABEL" --silent
+          }
+
+          prs="$(git rev-list "$prev..$TAG" | while read -r sha; do
+            gh api "repos/$REPO/commits/$sha/pulls" \
+              --jq '.[] | select(.merged_at != null and (.head.ref | startswith(env.RELEASE_BRANCH_PREFIX) | not)) | .number'
+          done | sort -nu)"
+
+          issues=""
+          for pr in $prs; do
+            mark_released "$pr"
+            issues+="$(gh api graphql -F owner="${REPO%%/*}" -F name="${REPO#*/}" -F number="$pr" -f query="$CLOSING_ISSUES_QUERY" \
+              --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | select(.repository.nameWithOwner == env.REPO) | .number')"$'\n'
+          done
+
+          sort -nu <<<"$issues" | while read -r issue; do
+            [ -z "$issue" ] || mark_released "$issue"
+          done
