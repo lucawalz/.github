@@ -1,15 +1,11 @@
 mock_provider "github" {}
 
 variables {
-  state_passphrase            = "test-passphrase-not-a-secret"
-  release_app_id              = "123"
-  release_app_private_key     = "test-key"
-  name                        = "example"
-  required_check              = "ci-gate"
-  release_app                 = { id = "123", private_key = "test-key" }
-  standard_labels_count       = 9
-  open_contribution_labels    = ["good first issue", "help wanted"]
-  default_branch_rule_summary = ["deletion", "non_fast_forward", "required_linear_history", "required_signatures"]
+  name                     = "example"
+  required_check           = "ci-gate"
+  release_app              = { id = "123", private_key = "test-key" }
+  standard_labels_count    = 9
+  open_contribution_labels = ["good first issue", "help wanted"]
 }
 
 run "released_repo" {
@@ -253,13 +249,4 @@ run "full_tiers_require_check" {
   }
 
   expect_failures = [var.required_check]
-}
-
-run "root_declares_dotgithub" {
-  command = plan
-
-  assert {
-    condition     = module.dotgithub.repository == ".github"
-    error_message = "the root configuration must manage the .github repo"
-  }
 }

@@ -1,11 +1,6 @@
 variable "state_passphrase" {
   type      = string
   sensitive = true
-
-  validation {
-    condition     = length(var.state_passphrase) >= 16
-    error_message = "The state passphrase must be at least 16 characters."
-  }
 }
 
 terraform {

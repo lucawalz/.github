@@ -30,7 +30,9 @@ Repositories updated by Renovate extend the shared default preset in `renovate/d
 
 `tofu/` declares the settings, rulesets, labels and release App secrets of every public repository with OpenTofu and the `integrations/github` provider. Each repository is one call of `tofu/modules/standard` in `tofu/repos.tf`; its declared exceptions (extra labels, extra rulesets, the required check) are inputs of that call. Labels outside the standard and the declared extras are left alone.
 
-The owner runs it from the Mac only:
+Adopting a repository imports it before anything is managed: its module call in `tofu/repos.tf` comes with an `import` block for the repository (id `<repo>`) and one for every standard or declared label that already exists on it (id `<repo>:<label>`), plus existing rulesets (id `<repo>:<ruleset-id>`) and release App secrets (id `<repo>:<SECRET_NAME>`). Creating any of these where it already exists fails.
+
+The owner runs it from the Mac only; `just plan` writes the encrypted plan to `tofu/tfplan` and `just apply` applies exactly that plan:
 
 ```
 just plan

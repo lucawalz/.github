@@ -13,8 +13,8 @@ check:
 
 plan:
     {{tofu}} -chdir=tofu init -input=false
-    {{tofu}} -chdir=tofu plan
+    {{tofu}} -chdir=tofu plan -out=tfplan
 
 apply:
     {{tofu}} -chdir=tofu init -input=false
-    {{tofu}} -chdir=tofu apply
+    {{tofu}} -chdir=tofu apply tfplan

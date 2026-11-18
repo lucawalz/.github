@@ -22,3 +22,8 @@ module "dotgithub" {
   required_check = "ci-gate"
   release_app    = local.release_app
 }
+
+import {
+  to = module.dotgithub.github_repository.this
+  id = ".github"
+}
