@@ -60,12 +60,21 @@ jobs:
               });
               for (const issue of issues) {
                 if (issue.pull_request) continue;
+                const events = await github.paginate(github.rest.issues.listEvents, {
+                  owner, repo, issue_number: issue.number, per_page: 100,
+                });
+                const labeledTimes = events
+                  .filter((e) => e.event === "labeled" && e.label?.name === label)
+                  .map((e) => Date.parse(e.created_at));
+                if (labeledTimes.length === 0) continue;
+                const labeledAt = Math.max(...labeledTimes);
                 const comments = await listComments(issue.number);
                 const authorTimes = comments
                   .filter((c) => c.user.login === issue.user.login && c.user.type !== "Bot")
-                  .map((c) => Date.parse(c.created_at));
-                const lastActivity = Math.max(Date.parse(issue.created_at), ...authorTimes);
-                if (Date.now() - lastActivity <= days * msPerDay) continue;
+                  .map((c) => Date.parse(c.created_at))
+                  .filter((t) => t > labeledAt);
+                const baseline = Math.max(labeledAt, ...authorTimes);
+                if (Date.now() - baseline <= days * msPerDay) continue;
                 await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: closingNote });
                 await github.rest.issues.update({ owner, repo, issue_number: issue.number, state: "closed", state_reason: "not_planned" });
               }
