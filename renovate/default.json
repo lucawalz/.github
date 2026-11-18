@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "minimumReleaseAge": "3 days",
+  "labels": ["dependencies"],
+  "vulnerabilityAlerts": {
+    "addLabels": ["security"]
+  },
+  "lockFileMaintenance": {
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "7 days",
+      "automerge": false,
+      "labels": ["dependencies", "held"]
+    }
+  ]
+}

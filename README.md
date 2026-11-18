@@ -16,6 +16,16 @@ Each repository belongs to one tier, which sets what it inherits and what it car
 | Scanning | zizmor, CodeQL, secret scanning, Scorecard | zizmor, CodeQL where code exists, secret scanning, Scorecard | zizmor, secret scanning | per repository |
 | Outside PRs | open | collaborators only | collaborators only | n/a |
 
+## Renovate preset
+
+Repositories updated by Renovate extend the shared default preset in `renovate/default.json`:
+
+```json
+{
+  "extends": ["github>lucawalz/.github//renovate/default"]
+}
+```
+
 ## Checks
 
 ```
