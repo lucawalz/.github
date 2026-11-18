@@ -33,9 +33,17 @@ jobs:
       - run: pipx install check-jsonschema
       - run: scripts/check-files.sh
 
+  release-guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: scripts/check-release-guard.sh
+
   ci-gate:
     if: always()
-    needs: [actionlint, zizmor, files]
+    needs: [actionlint, zizmor, files, release-guard]
     runs-on: ubuntu-24.04
     steps:
       - uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # v1.3.0
