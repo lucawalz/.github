@@ -151,6 +151,25 @@ run "deployed_repo" {
   }
 }
 
+run "deployed_repo_with_discussions" {
+  command = plan
+
+  module {
+    source = "./modules/standard"
+  }
+
+  variables {
+    tier            = "deployed"
+    release_app     = null
+    has_discussions = true
+  }
+
+  assert {
+    condition     = github_repository.this.has_discussions
+    error_message = "a declared discussions exception must enable discussions"
+  }
+}
+
 run "config_repo" {
   command = plan
 
@@ -170,8 +189,8 @@ run "config_repo" {
   }
 
   assert {
-    condition     = length(github_actions_secret.release_app) == 0
-    error_message = "a config repo must get no secrets"
+    condition     = length(github_actions_secret.release_app) == 0 && !github_repository.this.has_discussions
+    error_message = "a config repo must get no secrets and no discussions"
   }
 
   assert {

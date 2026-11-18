@@ -55,3 +55,21 @@ import {
   to = module.lucawalz.github_repository.this
   id = "lucawalz"
 }
+
+module "blog" {
+  source          = "./modules/standard"
+  name            = "blog"
+  tier            = "deployed"
+  required_check  = "ci-gate"
+  has_discussions = true
+}
+
+import {
+  to = module.blog.github_repository.this
+  id = "blog"
+}
+
+import {
+  to = module.blog.github_issue_label.this["dependencies"]
+  id = "blog:dependencies"
+}

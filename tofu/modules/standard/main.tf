@@ -10,6 +10,7 @@ locals {
   is_released   = var.tier == "released"
   is_full       = var.tier != "config"
   has_check     = var.required_check != null
+  discussions   = coalesce(var.has_discussions, local.is_released)
   admin_role_id = 5
   release_tags  = ["refs/tags/v*"]
 
@@ -105,7 +106,7 @@ resource "github_repository" "this" {
   has_issues                  = true
   has_wiki                    = false
   has_projects                = false
-  has_discussions             = local.is_released
+  has_discussions             = local.discussions
   allow_merge_commit          = false
   allow_rebase_merge          = false
   allow_squash_merge          = true

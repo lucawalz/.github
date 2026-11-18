@@ -60,6 +60,11 @@ variable "open_contributions" {
   default = false
 }
 
+variable "has_discussions" {
+  type    = bool
+  default = null
+}
+
 variable "release_app" {
   type = object({
     id          = string

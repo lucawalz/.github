@@ -28,7 +28,7 @@ Repositories updated by Renovate extend the shared default preset in `renovate/d
 
 ## Repository settings
 
-`tofu/` declares the settings, rulesets, labels and release App secrets of every public repository with OpenTofu and the `integrations/github` provider. Each repository is one call of `tofu/modules/standard` in `tofu/repos.tf`; its declared exceptions (extra labels, extra rulesets, the required check) are inputs of that call. Labels outside the standard and the declared extras are left alone.
+`tofu/` declares the settings, rulesets, labels and release App secrets of every public repository with OpenTofu and the `integrations/github` provider. Each repository is one call of `tofu/modules/standard` in `tofu/repos.tf`; its declared exceptions (extra labels, extra rulesets, the required check, discussions outside the released tier) are inputs of that call. Labels outside the standard and the declared extras are left alone.
 
 Adopting a repository imports it before anything is managed: its module call in `tofu/repos.tf` comes with an `import` block for the repository (id `<repo>`) and one for every standard or declared label that already exists on it (id `<repo>:<label>`), plus existing rulesets (id `<repo>:<ruleset-id>`) and release App secrets (id `<repo>:<SECRET_NAME>`). Creating any of these where it already exists fails.
 
@@ -56,7 +56,7 @@ The provider (v6.13.0) cannot manage these settings, so the owner sets them once
 - Private vulnerability reporting, every public repository: `gh api -X PUT repos/lucawalz/<repo>/private-vulnerability-reporting`
 - Immutable releases, released tier: `gh api -X PUT repos/lucawalz/<repo>/immutable-releases`
 - Pull requests from collaborators only, deployed and config tiers: `gh api -X PATCH repos/lucawalz/<repo> -f pull_request_creation_policy=collaborators_only`
-- Classic branch protection, dotfiles only, once the apply has activated its `default-branch` ruleset: `gh api -X DELETE repos/lucawalz/dotfiles/branches/main/protection`
+- Classic branch protection, dotfiles and blog only, once the apply has activated their `default-branch` ruleset: `gh api -X DELETE repos/lucawalz/<repo>/branches/main/protection`
 - Account plan, before each apply: `gh api user -q .plan.name` prints `pro`
 - Release App: created once with contents, pull requests and issues write, installed on every released repository
 
