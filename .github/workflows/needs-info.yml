@@ -1,0 +1,72 @@
+name: needs-info
+
+on:
+  workflow_call:
+    inputs:
+      days:
+        description: Days without a reply from the issue author before closing
+        required: false
+        type: number
+        default: 30
+
+permissions:
+  contents: read
+
+env:
+  NEEDS_INFO_LABEL: needs-info
+  MS_PER_DAY: "86400000"
+
+jobs:
+  needs-info:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          DAYS: ${{ inputs.days }}
+        with:
+          script: |
+            const label = process.env.NEEDS_INFO_LABEL;
+            const days = Number(process.env.DAYS);
+            const msPerDay = Number(process.env.MS_PER_DAY);
+            const botLogin = "github-actions[bot]";
+            const requestNote =
+              "More information is needed to continue. Reply here with the missing details. " +
+              `This issue closes after ${days} days without a reply from its author.`;
+            const closingNote =
+              `Closing because no reply from the author arrived within ${days} days. ` +
+              "Reopen the issue or open a new one with the requested details.";
+            const { owner, repo } = context.repo;
+            const listComments = (issue_number) =>
+              github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+
+            if (context.eventName === "issues") {
+              const { issue, label: applied } = context.payload;
+              if (issue.pull_request || applied?.name !== label) return;
+              const comments = await listComments(issue.number);
+              if (comments.some((c) => c.user.login === botLogin && c.body === requestNote)) return;
+              await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: requestNote });
+            } else if (context.eventName === "issue_comment") {
+              const { issue, comment } = context.payload;
+              if (issue.pull_request || comment.user.type === "Bot") return;
+              if (comment.user.login !== issue.user.login) return;
+              if (!issue.labels.some((l) => l.name === label)) return;
+              await github.rest.issues.removeLabel({ owner, repo, issue_number: issue.number, name: label });
+            } else if (context.eventName === "schedule") {
+              const issues = await github.paginate(github.rest.issues.listForRepo, {
+                owner, repo, state: "open", labels: label, per_page: 100,
+              });
+              for (const issue of issues) {
+                if (issue.pull_request) continue;
+                const comments = await listComments(issue.number);
+                const authorTimes = comments
+                  .filter((c) => c.user.login === issue.user.login && c.user.type !== "Bot")
+                  .map((c) => Date.parse(c.created_at));
+                const lastActivity = Math.max(Date.parse(issue.created_at), ...authorTimes);
+                if (Date.now() - lastActivity <= days * msPerDay) continue;
+                await github.rest.issues.createComment({ owner, repo, issue_number: issue.number, body: closingNote });
+                await github.rest.issues.update({ owner, repo, issue_number: issue.number, state: "closed", state_reason: "not_planned" });
+              }
+            }
