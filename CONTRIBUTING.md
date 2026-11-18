@@ -15,6 +15,14 @@ Contributions are welcome. This guide applies to every repository under `lucawal
 4. Open a pull request and fill in the template.
 5. CI must pass and the maintainer must approve before the change is merged. Pull requests are squash-merged.
 
+## Branches
+
+Branch names follow [Conventional Branch](https://conventionalbranch.org/): `<type>/<description>`, for example `feat/add-dark-mode` or `fix/issue-42-broken-link`. Types are `feat`, `fix`, `hotfix`, `release` and `chore`. Descriptions use lowercase letters, numbers, hyphens and dots only.
+
+## Commits
+
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), with the same types as pull request titles below.
+
 ## Pull request titles
 
 Pull request titles follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/), because the title becomes the squashed commit and feeds release notes:
