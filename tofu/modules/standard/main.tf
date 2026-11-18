@@ -9,6 +9,7 @@ terraform {
 locals {
   is_released   = var.tier == "released"
   is_full       = var.tier != "config"
+  has_check     = var.required_check != null
   admin_role_id = 5
   release_tags  = ["refs/tags/v*"]
 
@@ -58,8 +59,8 @@ locals {
         non_fast_forward        = true
         required_signatures     = true
         required_linear_history = local.is_full
-        pull_request            = local.is_full
-        required_checks         = local.is_full ? [var.required_check] : []
+        pull_request            = local.has_check
+        required_checks         = local.has_check ? [var.required_check] : []
       })
     },
     local.is_released ? {

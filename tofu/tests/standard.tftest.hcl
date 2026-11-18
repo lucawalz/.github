@@ -132,6 +132,20 @@ run "deployed_repo" {
   }
 
   assert {
+    condition     = [for a in github_repository_ruleset.this["default-branch"].bypass_actors : "${a.actor_type}:${a.actor_id}:${a.bypass_mode}"] == ["RepositoryRole:5:always"]
+    error_message = "the deployed default-branch ruleset must keep the admin as its only bypass actor"
+  }
+
+  assert {
+    condition = alltrue([
+      github_repository_ruleset.this["default-branch"].rules[0].required_signatures,
+      github_repository_ruleset.this["default-branch"].rules[0].non_fast_forward,
+      github_repository_ruleset.this["default-branch"].rules[0].deletion,
+    ])
+    error_message = "a deployed repo must require signatures and block force pushes and deletion"
+  }
+
+  assert {
     condition     = length(github_actions_secret.release_app) == 0 && !github_repository.this.has_discussions
     error_message = "a deployed repo must get no release secrets and no discussions"
   }
@@ -175,6 +189,60 @@ run "config_repo" {
     ])
     error_message = "a config repo must block deletion and force pushes and require signatures, without PR or check rules"
   }
+}
+
+run "config_repo_with_check" {
+  command = plan
+
+  module {
+    source = "./modules/standard"
+  }
+
+  variables {
+    tier        = "config"
+    release_app = null
+  }
+
+  assert {
+    condition     = [for a in github_repository_ruleset.this["default-branch"].bypass_actors : "${a.actor_type}:${a.actor_id}:${a.bypass_mode}"] == ["RepositoryRole:5:always"]
+    error_message = "the config default-branch ruleset must keep the admin bypass"
+  }
+
+  assert {
+    condition = alltrue([
+      github_repository_ruleset.this["default-branch"].rules[0].required_signatures,
+      github_repository_ruleset.this["default-branch"].rules[0].non_fast_forward,
+      github_repository_ruleset.this["default-branch"].rules[0].deletion,
+      !github_repository_ruleset.this["default-branch"].rules[0].required_linear_history,
+    ])
+    error_message = "a config repo must block deletion and force pushes and require signatures, without linear history"
+  }
+
+  assert {
+    condition     = [for c in github_repository_ruleset.this["default-branch"].rules[0].required_status_checks[0].required_check : c.context] == ["ci-gate"]
+    error_message = "a config repo with CI must require exactly the declared check"
+  }
+
+  assert {
+    condition     = github_repository_ruleset.this["default-branch"].rules[0].pull_request[0].required_approving_review_count == 0 && github_repository_ruleset.this["default-branch"].rules[0].pull_request[0].allowed_merge_methods == tolist(["squash"])
+    error_message = "a config repo with CI must require a squash-merged PR with zero approvals"
+  }
+}
+
+run "rejects_empty_check" {
+  command = plan
+
+  module {
+    source = "./modules/standard"
+  }
+
+  variables {
+    tier           = "config"
+    required_check = ""
+    release_app    = null
+  }
+
+  expect_failures = [var.required_check]
 }
 
 run "extra_ruleset" {

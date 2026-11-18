@@ -9,7 +9,7 @@ Each repository belongs to one tier, which sets what it inherits and what it car
 | Element | Released software (vigil, horizon, .github) | Continuously deployed (bedrock, blog) | Public config/profile (dotfiles, lucawalz) | Private |
 |---|---|---|---|---|
 | Community files | inherited plus own SECURITY, LICENSE | inherited plus own SECURITY, LICENSE | inherited, own LICENSE | inherited |
-| Default-branch ruleset | full | full | deletion and force-push block, signed commits | per repository |
+| Default-branch ruleset | full | full | deletion and force-push block, signed commits; PR and required check where CI runs | per repository |
 | Tag ruleset and immutable releases | yes | no | no | no |
 | Dependency updates | Dependabot plus shared auto-merge | Renovate with shared preset | Dependabot | per repository |
 | Releases | release-please shared workflow, GoReleaser where binaries ship, attestations | none, the SHA is the version | none | none |
@@ -56,6 +56,7 @@ The provider (v6.13.0) cannot manage these settings, so the owner sets them once
 - Private vulnerability reporting, every public repository: `gh api -X PUT repos/lucawalz/<repo>/private-vulnerability-reporting`
 - Immutable releases, released tier: `gh api -X PUT repos/lucawalz/<repo>/immutable-releases`
 - Pull requests from collaborators only, deployed and config tiers: `gh api -X PATCH repos/lucawalz/<repo> -f pull_request_creation_policy=collaborators_only`
+- Classic branch protection, dotfiles only, once the apply has activated its `default-branch` ruleset: `gh api -X DELETE repos/lucawalz/dotfiles/branches/main/protection`
 - Account plan, before each apply: `gh api user -q .plan.name` prints `pro`
 - Release App: created once with contents, pull requests and issues write, installed on every released repository
 

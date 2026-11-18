@@ -19,6 +19,11 @@ variable "required_check" {
     condition     = var.tier == "config" || var.required_check != null
     error_message = "Released and deployed repos need one required aggregate check."
   }
+
+  validation {
+    condition     = var.required_check == null ? true : trimspace(var.required_check) != ""
+    error_message = "The required check must be a non-empty check name."
+  }
 }
 
 variable "extra_labels" {
