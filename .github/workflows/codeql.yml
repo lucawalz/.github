@@ -7,6 +7,11 @@ on:
         description: Comma-separated CodeQL languages to analyze
         required: true
         type: string
+      go-version-file:
+        description: Path to the file declaring the Go version to install before analysis
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -21,6 +26,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - if: inputs.go-version-file != ''
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with:
+          go-version-file: ${{ inputs.go-version-file }}
+          cache: false
       - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
         with:
           languages: ${{ inputs.languages }}
