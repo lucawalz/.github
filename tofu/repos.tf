@@ -107,3 +107,43 @@ import {
   to = module.horizon.github_issue_label.this["help wanted"]
   id = "horizon:help wanted"
 }
+
+module "bedrock" {
+  source         = "./modules/standard"
+  name           = "bedrock"
+  tier           = "deployed"
+  required_check = "ci-gate"
+
+  extra_labels = {
+    kubernetes    = { color = "326ce5", description = "Changes under kubernetes/" }
+    hosts         = { color = "bfd4f2", description = "Changes under hosts/" }
+    nix           = { color = "7ebae4", description = "Changes under modules/" }
+    documentation = { color = "0075ca", description = "Improvements or additions to documentation" }
+    ci            = { color = "fef2c0", description = "Changes under .github/" }
+  }
+}
+
+import {
+  to = module.bedrock.github_repository.this
+  id = "bedrock"
+}
+
+import {
+  to = module.bedrock.github_repository_ruleset.this["default-branch"]
+  id = "bedrock:17505962"
+}
+
+import {
+  to = module.bedrock.github_issue_label.this["dependencies"]
+  id = "bedrock:dependencies"
+}
+
+import {
+  to = module.bedrock.github_issue_label.this["held"]
+  id = "bedrock:held"
+}
+
+import {
+  to = module.bedrock.github_issue_label.this["documentation"]
+  id = "bedrock:documentation"
+}
