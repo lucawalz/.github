@@ -73,3 +73,37 @@ import {
   to = module.blog.github_issue_label.this["dependencies"]
   id = "blog:dependencies"
 }
+
+module "horizon" {
+  source             = "./modules/standard"
+  name               = "horizon"
+  tier               = "released"
+  required_check     = "ci-gate"
+  release_app        = local.release_app
+  open_contributions = true
+}
+
+import {
+  to = module.horizon.github_repository.this
+  id = "horizon"
+}
+
+import {
+  to = module.horizon.github_repository_ruleset.this["default-branch"]
+  id = "horizon:17506885"
+}
+
+import {
+  to = module.horizon.github_issue_label.this["dependencies"]
+  id = "horizon:dependencies"
+}
+
+import {
+  to = module.horizon.github_issue_label.this["good first issue"]
+  id = "horizon:good first issue"
+}
+
+import {
+  to = module.horizon.github_issue_label.this["help wanted"]
+  id = "horizon:help wanted"
+}

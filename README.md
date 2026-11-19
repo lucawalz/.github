@@ -54,9 +54,9 @@ Both read these environment variables:
 The provider (v6.13.0) cannot manage these settings, so the owner sets them once per repository with `gh`:
 
 - Private vulnerability reporting, every public repository: `gh api -X PUT repos/lucawalz/<repo>/private-vulnerability-reporting`
-- Immutable releases, released tier: `gh api -X PUT repos/lucawalz/<repo>/immutable-releases`
+- Immutable releases, released tier, only after the repository's first successful release run: `gh api -X PUT repos/lucawalz/<repo>/immutable-releases`
 - Pull requests from collaborators only, deployed and config tiers: `gh api -X PATCH repos/lucawalz/<repo> -f pull_request_creation_policy=collaborators_only`
-- Classic branch protection, dotfiles and blog only, once the apply has activated their `default-branch` ruleset: `gh api -X DELETE repos/lucawalz/<repo>/branches/main/protection`
+- Classic branch protection, dotfiles, blog and horizon only, once the apply has activated their `default-branch` ruleset: `gh api -X DELETE repos/lucawalz/<repo>/branches/main/protection`
 - Account plan, before each apply: `gh api user -q .plan.name` prints `pro`
 - Release App: created once with contents, pull requests and issues write, installed on every released repository
 
