@@ -158,17 +158,17 @@ just plan
 just apply
 ```
 
-Both read these environment variables:
+Load the R2 credentials into the current shell once per terminal session with `eval "$(just r2-session)"`, which prompts for them and stores nothing. Both recipes then check the inputs and set `GITHUB_TOKEN` and the `TF_VAR_*` variables themselves; this is where each value comes from:
 
 | Variable | Value |
 |---|---|
-| `GITHUB_TOKEN` | token with admin on the managed repositories |
-| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | R2 token scoped to the `lucawalz-tofu-state` bucket |
-| `AWS_ENDPOINT_URL_S3` | `https://<account-id>.r2.cloudflarestorage.com` |
-| `TF_VAR_state_passphrase` | state and plan encryption passphrase, at least 16 characters |
-| `TF_VAR_release_app_id`, `TF_VAR_release_app_private_key` | release App ID and private key |
+| `GITHUB_TOKEN` | set by the recipes from `gh auth token`; needs admin on the managed repositories |
+| `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | R2 token scoped to the `lucawalz-tofu-state` bucket, from `just r2-session` |
+| `AWS_ENDPOINT_URL_S3` | `https://<account-id>.r2.cloudflarestorage.com`, from `just r2-session` |
+| `TF_VAR_state_passphrase` | set by the recipes from the Keychain; state and plan encryption passphrase, at least 16 characters |
+| `TF_VAR_release_app_id`, `TF_VAR_release_app_private_key` | set by the recipes from the release App and its key file |
 
-Before each apply, `gh api user -q .plan.name` prints `pro`.
+Both recipes refuse to run unless `gh api user -q .plan.name` prints `pro`.
 
 ## Manual steps
 
