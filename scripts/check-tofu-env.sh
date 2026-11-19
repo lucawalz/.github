@@ -24,7 +24,7 @@ fail() {
 cat > "$work/bin/gh" <<FAKE
 #!/usr/bin/env bash
 case "\$*" in
-  "api apps/keybedbot -q .id") echo "\${FAKE_APP_ID-$TEST_APP_ID}" ;;
+  "api apps/versionabot -q .id") echo "\${FAKE_APP_ID-$TEST_APP_ID}" ;;
   "api user -q .plan.name") echo "\${FAKE_PLAN:-pro}" ;;
   "auth token") [[ -z "\${FAKE_TOKEN_FAIL:-}" ]] || { echo "fake token failure" >&2; exit 1; }; echo "$TEST_GH_TOKEN" ;;
   *) echo "unexpected gh \$*" >&2; exit 1 ;;

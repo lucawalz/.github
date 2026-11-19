@@ -13,8 +13,8 @@ check:
     {{tofu}} -chdir=tofu test
 
 keychain_item := "tofu-state-passphrase"
-app_key_path := "/Volumes/bedrock-keys/github/keybedbot.pem"
-app_slug := "keybedbot"
+app_key_path := "/Volumes/bedrock-keys/github/versionabot.pem"
+app_slug := "versionabot"
 
 r2-session:
     #!/usr/bin/env bash
