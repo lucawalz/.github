@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.2.0](https://github.com/lucawalz/.github/compare/v0.1.0...v0.2.0) (2026-11-19)
+
+
+### Features
+
+* **tofu:** adopt bedrock as deployed tier with path labels ([3e40eb2](https://github.com/lucawalz/.github/commit/3e40eb2c963d57a0e7c85a46afa22acd8afdd162))
+* **tofu:** adopt dotfiles and the profile repository as config tier ([1b0ba4f](https://github.com/lucawalz/.github/commit/1b0ba4f99da208a4576c2ef38933758e6f336f94))
+* **tofu:** adopt horizon as released tier with open contributions ([d61cfb2](https://github.com/lucawalz/.github/commit/d61cfb2e387ff5ba5d2762ec4f74c81ce41a69ae))
+* **tofu:** adopt the blog as deployed tier with discussions kept ([451b700](https://github.com/lucawalz/.github/commit/451b700ca458d9edb6bb6aa6674697ff736b5d07))
+* **tofu:** adopt vigil into the released tier standard ([2ed797c](https://github.com/lucawalz/.github/commit/2ed797c70081664c9491078ccc2473572d30c562))
+
+
+### Bug Fixes
+
+* **codeql:** install the go version a repository declares before analysis ([8109f18](https://github.com/lucawalz/.github/commit/8109f185a8e64827c61b3d411b2c54576818094d))
+* **renovate:** let docker images without release timestamps pass the age wait ([849d792](https://github.com/lucawalz/.github/commit/849d79296d80d9bfa9e7b19a42317f5467f398bf))
+* **tofu:** import the ci label the labeler created on bedrock ([9f25164](https://github.com/lucawalz/.github/commit/9f251646542918fab1881b2d22d77a4487e50a4d))
+
 ## 0.1.0 (2026-11-18)
 
 
