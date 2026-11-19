@@ -13,6 +13,7 @@ locals {
     id          = var.release_app_id
     private_key = var.release_app_private_key
   }
+  eval_app_id = 5427224
 }
 
 module "dotgithub" {
@@ -151,4 +152,86 @@ import {
 import {
   to = module.bedrock.github_issue_label.this["ci"]
   id = "bedrock:ci"
+}
+
+module "vigil" {
+  source             = "./modules/standard"
+  name               = "vigil"
+  tier               = "released"
+  required_check     = "ci-gate"
+  release_app        = local.release_app
+  open_contributions = true
+
+  extra_rulesets = {
+    eval-baseline-gate = {
+      include                = ["refs/heads/chore/eval-cluster-baseline", "refs/heads/eval/**/*"]
+      required_checks        = ["remediation-gate"]
+      bypass_integration_ids = [local.eval_app_id]
+    }
+    eval-results-preserved = {
+      include          = ["refs/heads/docs/eval-results"]
+      deletion         = true
+      non_fast_forward = true
+    }
+  }
+}
+
+import {
+  to = module.vigil.github_repository.this
+  id = "vigil"
+}
+
+import {
+  to = module.vigil.github_repository_ruleset.this["default-branch"]
+  id = "vigil:16367123"
+}
+
+import {
+  to = module.vigil.github_repository_ruleset.this["release-tags-creation"]
+  id = "vigil:24348716"
+}
+
+import {
+  to = module.vigil.github_repository_ruleset.this["release-tags-immutable"]
+  id = "vigil:24348715"
+}
+
+import {
+  to = module.vigil.github_repository_ruleset.this["eval-baseline-gate"]
+  id = "vigil:16848885"
+}
+
+import {
+  to = module.vigil.github_repository_ruleset.this["eval-results-preserved"]
+  id = "vigil:24348717"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["dependencies"]
+  id = "vigil:dependencies"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["needs-triage"]
+  id = "vigil:needs-triage"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["released"]
+  id = "vigil:released"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["security"]
+  id = "vigil:security"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["good first issue"]
+  id = "vigil:good first issue"
+}
+
+import {
+  to = module.vigil.github_issue_label.this["help wanted"]
+  id = "vigil:help wanted"
 }
