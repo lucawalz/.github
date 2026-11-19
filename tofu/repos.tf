@@ -147,3 +147,8 @@ import {
   to = module.bedrock.github_issue_label.this["documentation"]
   id = "bedrock:documentation"
 }
+
+import {
+  to = module.bedrock.github_issue_label.this["ci"]
+  id = "bedrock:ci"
+}
