@@ -36,14 +36,14 @@ A full default-branch ruleset blocks deletion and force pushes and requires line
 
 A public repository adopts the standard in this order.
 
-1. **Snapshot.** Export the repository's current settings, rulesets, classic branch protection, labels, secret names and workflow files to a file outside version control, so anything can be compared or restored.
+1. **Snapshot.** Run `just onboard <repo> <tier>`. For an existing repository it exports the current settings, rulesets, classic branch protection and labels to `.snapshots/<repo>/` (outside version control), so anything can be compared or restored; secret names and workflow files are listed with `gh secret list` and `git ls-files .github`. For a repository that does not exist yet the snapshot is skipped. The command is read-only and also prints the caller pins, the import blocks and the post-apply commands used in the steps below.
 2. **Choose a tier:** `released`, `deployed` or `config`, as in the table above.
 3. **Remove duplicates.** Delete local CONTRIBUTING, CODE_OF_CONDUCT, SUPPORT and issue or PR templates that only duplicate the shared ones, and copied workflows that a shared workflow replaces. Keep LICENSE, and SECURITY.md in released and deployed repositories (Scorecard cannot see inherited files).
 4. **Add callers** of the reusable workflows (see [Usage](#usage)), pinned to the full commit SHA of a release tag with the tag as a version comment. Add one aggregate job, by convention `ci-gate`, that needs every other CI job and fails if any of them failed. For dependency updates, add `renovate.json` extending the shared preset or a `dependabot.yml` with the auto-merge caller, as the tier requires.
 5. **Wait for green.** Push the callers and wait until the aggregate check has passed on the default branch. The ruleset makes it required, so applying before it has ever passed blocks every pull request.
-6. **Add the module call** to [tofu/repos.tf](tofu/repos.tf), with the tier, the aggregate check name and the repository's declared exceptions as inputs, and `import` blocks for everything that already exists (see [Import blocks](#import-blocks)).
-7. **Plan and apply** with `just plan` and `just apply` (see [Running OpenTofu](#running-opentofu)). Review the plan before applying: no resource is destroyed, and imported rulesets update in place. A second `just plan` reports no changes.
-8. **Delete classic branch protection** once the apply has activated the `default-branch` ruleset, with the command in the classic branch protection row of [Manual steps](#manual-steps).
+6. **Add the module call** to [tofu/repos.tf](tofu/repos.tf), with the tier, the aggregate check name and the repository's declared exceptions as inputs, and `import` blocks for everything that already exists. `just onboard` prints the import blocks for the repository, its rulesets and its standard labels; non-standard labels are listed as comments and belong in `extra_labels` (see [Import blocks](#import-blocks)).
+7. **Plan and apply** the new module with `just plan <repo>` and `just apply <repo>` (see [Running OpenTofu](#running-opentofu)). Review the plan before applying: no resource is destroyed, and imported rulesets update in place. A second `just plan <repo>` reports no changes.
+8. **Finish the manual steps** listed under "After apply" by `just onboard`, see [Manual steps](#manual-steps). Classic branch protection is deleted only once the apply has activated the `default-branch` ruleset.
 9. **Released tier only: add the release caller** after the apply, because the apply creates the `RELEASE_APP_ID` and `RELEASE_APP_PRIVATE_KEY` secrets the release workflow reads. The release type and version files are set in the repository's `release-please-config.json`. After the first successful release, enable immutable releases.
 
    ```yaml
@@ -158,6 +158,8 @@ just plan
 just apply
 ```
 
+Both recipes take an optional target, the name of a module in [tofu/repos.tf](tofu/repos.tf) (for example `just plan vigil`). The name is validated against the file, and only that module is planned or applied. The plan and the apply must use the same target, since `just apply` applies the saved plan.
+
 Load the R2 credentials into the current shell once per terminal session with `eval "$(just r2-session)"`, which prompts for them and stores nothing. Both recipes then check the inputs and set `GITHUB_TOKEN` and the `TF_VAR_*` variables themselves; this is where each value comes from:
 
 | Variable | Value |
@@ -170,6 +172,16 @@ Load the R2 credentials into the current shell once per terminal session with `e
 
 Both recipes refuse to run unless `gh api user -q .plan.name` prints `pro`.
 
+#### Temporary release App key
+
+The release App private key normally lives on the `bedrock-keys` volume. When that volume is not mounted, `RELEASE_APP_KEY_PATH` points one run at another key file:
+
+1. In the release App settings on GitHub, generate a second private key and save it to a local file.
+2. Run the recipes with the override and the target, for example `RELEASE_APP_KEY_PATH=~/versionabot-temp.pem just plan <repo>`, then the same for `just apply <repo>`.
+3. Once the volume is back, run `just plan` and `just apply` again without the override, so the stored secrets carry the standard key.
+4. Delete the temporary key in the release App settings and remove the local file.
+
+The key is only read into the process environment for that run and is never written to the repository.
 ## Manual steps
 
 The provider (v6.13.0) cannot manage these settings, so the owner sets them once per repository:
