@@ -15,7 +15,7 @@ usage() {
 [[ $# -eq 2 ]] || usage
 repo="$1"
 tier="$2"
-[[ -n "$repo" ]] || usage
+[[ "$repo" =~ ^[A-Za-z0-9._-]+$ ]] || usage
 
 case "$tier" in
   released)
