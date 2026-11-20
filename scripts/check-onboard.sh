@@ -108,6 +108,11 @@ for bad in "a/b" "a b" '$(id)' "../x"; do
 done
 scripts/onboard.sh "a/b" released >/dev/null 2>&1 || [[ $? -eq 2 ]] || fail "invalid repo did not exit 2"
 
+just onboard "\$(touch $work/injected)" released >/dev/null 2>&1 && fail "command substitution repo accepted"
+[[ ! -e "$work/injected" ]] || fail "repo ran as code"
+just onboard oldrepo "\$(touch $work/injected)" >/dev/null 2>&1 && fail "command substitution tier accepted"
+[[ ! -e "$work/injected" ]] || fail "tier ran as code"
+
 scripts/onboard.sh forbidden released >/dev/null 2>"$work/err" && fail "403 on branch protection accepted"
 grep -q 'Forbidden' "$work/err" || fail "403 error not surfaced"
 [[ "$(jq length "$work/snapshots/oldrepo/branch-protection.json")" -eq 0 ]] || fail "unprotected snapshot is not an empty object"

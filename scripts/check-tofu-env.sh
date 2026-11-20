@@ -134,6 +134,8 @@ RELEASE_APP_KEY_PATH="$work/other.pem" just plan 2>&1 >/dev/null | grep -qxF "us
 just --set app_key_path "$work/key.pem" plan 2>&1 >/dev/null | grep -q "using release App key" && fail "default key announced as override"
 refuses "invalid target" just --set app_key_path "$work/key.pem" plan 'a.b'
 refuses "invalid target" just --set app_key_path "$work/key.pem" plan 'dot.*'
+refuses "invalid target" just --set app_key_path "$work/key.pem" plan "\$(touch $work/injected)"
+[[ ! -e "$work/injected" ]] || fail "target ran as code"
 
 if grep -rF -e "$TEST_ACCESS_KEY" -e "$TEST_SECRET_KEY" "$work/session.err" "$work/plan.err" >/dev/null; then
   fail "a secret leaked to stderr"

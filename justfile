@@ -34,20 +34,20 @@ r2-session:
       printf 'export %s=%q\n' "${names[i]}" "${values[i]}"
     done
 
-onboard repo tier:
-    scripts/onboard.sh {{repo}} {{tier}}
+onboard $repo $tier:
+    scripts/onboard.sh "$repo" "$tier"
 
 plan target="": (_tofu "plan" target)
 
 apply target="": (_tofu "apply" target)
 
-_tofu action target:
+_tofu action $target:
     #!/usr/bin/env bash
     set -euo pipefail
     die() { echo "$*" >&2; exit 1; }
-    if [[ -n "{{target}}" ]]; then
-      [[ "{{target}}" =~ ^[a-z0-9_-]+$ ]] || die "invalid target {{target}}"
-      grep -qxF 'module "{{target}}" {' tofu/repos.tf || die "no module {{target}} in tofu/repos.tf"
+    if [[ -n "$target" ]]; then
+      [[ "$target" =~ ^[a-z0-9_-]+$ ]] || die "invalid target $target"
+      grep -qxF "module \"$target\" {" tofu/repos.tf || die "no module $target in tofu/repos.tf"
     fi
     key_path="${RELEASE_APP_KEY_PATH:-{{app_key_path}}}"
     [[ -z "${RELEASE_APP_KEY_PATH:-}" ]] || echo "using release App key from $key_path" >&2
@@ -70,7 +70,7 @@ _tofu action target:
     {{tofu}} -chdir=tofu init -input=false
     if [[ "{{action}}" == plan ]]; then
       plan_args=(-out=tfplan)
-      [[ -z "{{target}}" ]] || plan_args=(-target="module.{{target}}" "${plan_args[@]}")
+      [[ -z "$target" ]] || plan_args=(-target="module.$target" "${plan_args[@]}")
       {{tofu}} -chdir=tofu plan "${plan_args[@]}"
     else
       {{tofu}} -chdir=tofu apply tfplan
