@@ -74,7 +74,9 @@ tag="$(api "repos/$OWNER/$SHARED_REPO/releases/latest" | jq -r .tag_name)"
 sha="$(api "repos/$OWNER/$SHARED_REPO/commits/$tag" | jq -r .sha)"
 [[ -n "$tag" && "$tag" != null && "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "could not resolve the latest release of $OWNER/$SHARED_REPO" >&2; exit 1; }
 for name in "${workflows[@]}"; do
-  echo "uses: $OWNER/.github/.github/workflows/$name.yml@$sha # $tag"
+  note=
+  [[ "$name" != release ]] || note=" # after apply (Installation step 9)"
+  echo "uses: $OWNER/.github/.github/workflows/$name.yml@$sha # $tag$note"
 done
 
 echo
@@ -102,6 +104,12 @@ if ((exists)); then
   done < <(jq -r '.[].name' <<< "$labels_json")
 fi
 
+if ((exists)) && printf '%s\n' "${workflows[@]}" | grep -qxF codeql; then
+  echo
+  echo "== Before pushing callers =="
+  echo "gh api -X PATCH repos/$OWNER/$repo/code-scanning/default-setup -f state=not-configured   # only if CodeQL default setup is on, before the first codeql.yml run"
+fi
+
 echo
 echo "== After apply =="
 echo "gh api -X PUT repos/$OWNER/$repo/private-vulnerability-reporting"
@@ -118,5 +126,4 @@ if ((exists)); then
   if [[ "$(jq 'length' <<< "$protection_json")" -gt 0 ]]; then
     echo "gh api -X DELETE repos/$OWNER/$repo/branches/$branch/protection   # classic branch protection exists"
   fi
-  echo "gh api -X PATCH repos/$OWNER/$repo/code-scanning/default-setup -f state=not-configured   # only if CodeQL default setup is on, before the first codeql.yml run"
 fi
