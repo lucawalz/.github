@@ -44,7 +44,10 @@ if ((exists)); then
   rulesets_json="$(api "repos/$OWNER/$repo/rulesets")"
   labels_json="$(api "repos/$OWNER/$repo/labels" --paginate | jq -s 'add // []')"
   branch="$(jq -r .default_branch <<< "$repo_json")"
-  protection_json="$(api "repos/$OWNER/$repo/branches/$branch/protection" 2>/dev/null || echo '{}')"
+  if ! protection_json="$(api "repos/$OWNER/$repo/branches/$branch/protection" 2>"$err")"; then
+    grep -q 'Branch not protected' "$err" || { cat "$err" >&2; exit 1; }
+    protection_json='{}'
+  fi
   printf '%s\n' "$repo_json" > "$dir/repo.json"
   printf '%s\n' "$rulesets_json" > "$dir/rulesets.json"
   printf '%s\n' "$labels_json" > "$dir/labels.json"

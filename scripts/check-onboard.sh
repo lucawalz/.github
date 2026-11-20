@@ -29,7 +29,11 @@ case "\$*" in
   "api repos/lucawalz/oldrepo") echo '{"name":"oldrepo","default_branch":"main"}' ;;
   "api repos/lucawalz/oldrepo/rulesets") echo '[{"id":1,"name":"default-branch"}]' ;;
   "api repos/lucawalz/oldrepo/labels --paginate") echo '[{"name":"dependencies"},{"name":"custom thing"}]' ;;
-  "api repos/lucawalz/oldrepo/branches/main/protection") echo "gh: Not Found (HTTP 404)" >&2; exit 1 ;;
+  "api repos/lucawalz/oldrepo/branches/main/protection") echo '{"message":"Branch not protected","status":"404"}'; echo "gh: Branch not protected (HTTP 404)" >&2; exit 1 ;;
+  "api repos/lucawalz/forbidden/branches/main/protection") echo '{"message":"Forbidden","status":"403"}'; echo "gh: Forbidden (HTTP 403)" >&2; exit 1 ;;
+  "api repos/lucawalz/forbidden") echo '{"name":"forbidden","default_branch":"main"}' ;;
+  "api repos/lucawalz/forbidden/rulesets") echo '[]' ;;
+  "api repos/lucawalz/forbidden/labels --paginate") echo '[]' ;;
   *) echo "unexpected gh \$*" >&2; exit 1 ;;
 esac
 FAKE
@@ -75,6 +79,10 @@ grep -q 'immutable-releases' <<< "$out" && fail "config tier lists immutable rel
 scripts/onboard.sh oldrepo bogus >/dev/null 2>&1 && fail "invalid tier accepted"
 scripts/onboard.sh oldrepo bogus >/dev/null 2>&1 || [[ $? -eq 2 ]] || fail "invalid tier did not exit 2"
 scripts/onboard.sh >/dev/null 2>&1 && fail "missing arguments accepted"
+
+scripts/onboard.sh forbidden released >/dev/null 2>"$work/err" && fail "403 on branch protection accepted"
+grep -q 'Forbidden' "$work/err" || fail "403 error not surfaced"
+[[ "$(jq length "$work/snapshots/oldrepo/branch-protection.json")" -eq 0 ]] || fail "unprotected snapshot is not an empty object"
 
 [[ ! -s "$FAKE_GH_VIOLATIONS" ]] || fail "gh called with a write flag: $(cat "$FAKE_GH_VIOLATIONS")"
 
