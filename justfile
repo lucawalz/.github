@@ -33,14 +33,18 @@ r2-session:
       printf 'export %s=%q\n' "${names[i]}" "${values[i]}"
     done
 
-plan: (_tofu "plan")
+plan target="": (_tofu "plan" target)
 
-apply: (_tofu "apply")
+apply target="": (_tofu "apply" target)
 
-_tofu action:
+_tofu action target:
     #!/usr/bin/env bash
     set -euo pipefail
     die() { echo "$*" >&2; exit 1; }
+    if [[ -n "{{target}}" ]]; then
+      grep -q '^module "{{target}}"' tofu/repos.tf || die "no module {{target}} in tofu/repos.tf"
+    fi
+    key_path="${RELEASE_APP_KEY_PATH:-{{app_key_path}}}"
     for var in AWS_ENDPOINT_URL_S3 AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
       [[ -n "${!var:-}" ]] || die 'run: eval "$(just r2-session)"'
     done
@@ -48,18 +52,20 @@ _tofu action:
     [[ "$app_id" =~ ^[0-9]+$ ]] || die "gh returned no numeric App ID for {{app_slug}}"
     plan_name="$(gh api user -q .plan.name)"
     [[ "$plan_name" == pro ]] || die "account plan is '$plan_name', not pro"
-    [[ -r "{{app_key_path}}" ]] || die "cannot read {{app_key_path}}"
+    [[ -r "$key_path" ]] || die "cannot read $key_path"
     TF_VAR_state_passphrase="$(security find-generic-password -a "$USER" -s {{keychain_item}} -w)"
     export TF_VAR_state_passphrase
     TF_VAR_release_app_id="$app_id"
     export TF_VAR_release_app_id
-    TF_VAR_release_app_private_key="$(cat "{{app_key_path}}")"
+    TF_VAR_release_app_private_key="$(cat "$key_path")"
     export TF_VAR_release_app_private_key
     GITHUB_TOKEN="$(gh auth token)"
     export GITHUB_TOKEN
     {{tofu}} -chdir=tofu init -input=false
     if [[ "{{action}}" == plan ]]; then
-      {{tofu}} -chdir=tofu plan -out=tfplan
+      plan_args=(-out=tfplan)
+      [[ -z "{{target}}" ]] || plan_args=(-target="module.{{target}}" "${plan_args[@]}")
+      {{tofu}} -chdir=tofu plan "${plan_args[@]}"
     else
       {{tofu}} -chdir=tofu apply tfplan
     fi

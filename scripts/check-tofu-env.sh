@@ -112,6 +112,24 @@ done
 just --set app_key_path "$work/key.pem" apply >/dev/null 2>&1 || fail "apply failed on the success path"
 grep -qxF "tofu -chdir=tofu apply tfplan" "$FAKE_TOFU_LOG" || fail "apply did not run tofu apply tfplan"
 
+: > "$FAKE_TOFU_LOG"
+just --set app_key_path "$work/key.pem" plan dotgithub >/dev/null 2>&1 || fail "targeted plan failed"
+grep -qxF "tofu -chdir=tofu plan -target=module.dotgithub -out=tfplan" "$FAKE_TOFU_LOG" || fail "targeted plan lacks -target"
+
+: > "$FAKE_TOFU_LOG"
+just --set app_key_path "$work/key.pem" plan >/dev/null 2>&1 || fail "untargeted plan failed"
+grep -qxF "tofu -chdir=tofu plan -out=tfplan" "$FAKE_TOFU_LOG" || fail "untargeted plan changed"
+grep -q -- "-target" "$FAKE_TOFU_LOG" && fail "untargeted plan carries -target"
+
+: > "$FAKE_TOFU_LOG"
+refuses "no module nosuchrepo in tofu/repos.tf" just --set app_key_path "$work/key.pem" plan nosuchrepo
+[[ ! -s "$FAKE_TOFU_LOG" ]] || fail "tofu ran for an unknown module"
+
+printf '%s' "other pem" > "$work/other.pem"
+RELEASE_APP_KEY_PATH="$work/other.pem" just plan >/dev/null 2>&1 || fail "plan failed with key override"
+grep -qxF "TF_VAR_release_app_private_key=other pem" "$FAKE_TOFU_LOG" || fail "key override not used"
+refuses "cannot read /nonexistent" env RELEASE_APP_KEY_PATH=/nonexistent just plan
+
 if grep -rF -e "$TEST_ACCESS_KEY" -e "$TEST_SECRET_KEY" "$work/session.err" "$work/plan.err" >/dev/null; then
   fail "a secret leaked to stderr"
 fi
