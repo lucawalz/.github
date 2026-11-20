@@ -46,9 +46,11 @@ _tofu action target:
     set -euo pipefail
     die() { echo "$*" >&2; exit 1; }
     if [[ -n "{{target}}" ]]; then
-      grep -q '^module "{{target}}"' tofu/repos.tf || die "no module {{target}} in tofu/repos.tf"
+      [[ "{{target}}" =~ ^[a-z0-9_-]+$ ]] || die "invalid target {{target}}"
+      grep -qxF 'module "{{target}}" {' tofu/repos.tf || die "no module {{target}} in tofu/repos.tf"
     fi
     key_path="${RELEASE_APP_KEY_PATH:-{{app_key_path}}}"
+    [[ -z "${RELEASE_APP_KEY_PATH:-}" ]] || echo "using release App key from $key_path" >&2
     for var in AWS_ENDPOINT_URL_S3 AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY; do
       [[ -n "${!var:-}" ]] || die 'run: eval "$(just r2-session)"'
     done

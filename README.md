@@ -182,6 +182,7 @@ The release App private key normally lives on the `bedrock-keys` volume. When th
 4. Delete the temporary key in the release App settings and remove the local file.
 
 The key is only read into the process environment for that run and is never written to the repository.
+
 ## Manual steps
 
 The provider (v6.13.0) cannot manage these settings, so the owner sets them once per repository:

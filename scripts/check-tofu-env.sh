@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+unset RELEASE_APP_KEY_PATH
 
 readonly ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly TEST_ENDPOINT="https://example.invalid/it's here"
@@ -129,6 +130,10 @@ printf '%s' "other pem" > "$work/other.pem"
 RELEASE_APP_KEY_PATH="$work/other.pem" just plan >/dev/null 2>&1 || fail "plan failed with key override"
 grep -qxF "TF_VAR_release_app_private_key=other pem" "$FAKE_TOFU_LOG" || fail "key override not used"
 refuses "cannot read /nonexistent" env RELEASE_APP_KEY_PATH=/nonexistent just plan
+RELEASE_APP_KEY_PATH="$work/other.pem" just plan 2>&1 >/dev/null | grep -qxF "using release App key from $work/other.pem" || fail "key override not announced"
+just --set app_key_path "$work/key.pem" plan 2>&1 >/dev/null | grep -q "using release App key" && fail "default key announced as override"
+refuses "invalid target" just --set app_key_path "$work/key.pem" plan 'a.b'
+refuses "invalid target" just --set app_key_path "$work/key.pem" plan 'dot.*'
 
 if grep -rF -e "$TEST_ACCESS_KEY" -e "$TEST_SECRET_KEY" "$work/session.err" "$work/plan.err" >/dev/null; then
   fail "a secret leaked to stderr"
