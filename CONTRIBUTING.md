@@ -35,6 +35,30 @@ Common types are `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci
 
 Commits on the default branch must be signed.
 
+## Documentation
+
+READMEs follow [Make a README](https://www.makeareadme.com/). The name, badges and a one-line description open the file, followed by its sections in this order: Description, Installation, Usage, Support, Roadmap, Contributing, Authors and acknowledgment, License, Project status. Sections that do not apply are left out, and repository-specific sections such as Architecture or Repository layout go after Usage.
+
+Architecture decisions are recorded in `docs/adr/` in [Michael Nygard's format](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions), one file per decision, named `NNNN-imperative-title.md`:
+
+```
+# 7. Use one signing key
+
+Date: 2026-11-20
+
+## Status
+
+Accepted
+
+## Context
+
+## Decision
+
+## Consequences
+```
+
+Status is Proposed, Accepted, Deprecated or Superseded by a later record, which is linked. A record is short: the forces at play and the rejected alternatives in Context, the decision in a few sentences, and what follows from it in Consequences. Accepted records are not rewritten; a changed decision gets a new record that supersedes the old one. `docs/adr/README.md` lists every record with its status.
+
 ## AI-assisted contributions
 
 AI-assisted work is welcome under these rules:
