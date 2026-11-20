@@ -18,9 +18,18 @@ tier="$2"
 [[ -n "$repo" ]] || usage
 
 case "$tier" in
-  released) workflows=(pr-title zizmor codeql scorecard dependabot-automerge release) ;;
-  deployed) workflows=(pr-title zizmor codeql scorecard) ;;
-  config) workflows=(pr-title zizmor dependabot-automerge) ;;
+  released)
+    workflows=(pr-title zizmor codeql scorecard dependabot-automerge release)
+    rulesets=(default-branch release-tags-creation release-tags-immutable)
+    ;;
+  deployed)
+    workflows=(pr-title zizmor codeql scorecard)
+    rulesets=(default-branch)
+    ;;
+  config)
+    workflows=(pr-title zizmor dependabot-automerge)
+    rulesets=(default-branch)
+    ;;
   *) usage ;;
 esac
 
@@ -45,7 +54,7 @@ if ((exists)); then
   labels_json="$(api "repos/$OWNER/$repo/labels" --paginate | jq -s 'add // []')"
   branch="$(jq -r .default_branch <<< "$repo_json")"
   if ! protection_json="$(api "repos/$OWNER/$repo/branches/$branch/protection" 2>"$err")"; then
-    grep -q 'Branch not protected' "$err" || { cat "$err" >&2; exit 1; }
+    grep -q 'Branch not protected\|Branch not found' "$err" || { cat "$err" >&2; exit 1; }
     protection_json='{}'
   fi
   printf '%s\n' "$repo_json" > "$dir/repo.json"
@@ -76,12 +85,17 @@ import_block() {
 import_block "module.$module.github_repository.this" "$repo"
 if ((exists)); then
   while IFS=$'\t' read -r id name; do
-    import_block "module.$module.github_repository_ruleset.this[\"$name\"]" "$repo:$id"
+    if printf '%s\n' "${rulesets[@]}" | grep -qxF -- "$name"; then
+      import_block "module.$module.github_repository_ruleset.this[\"$name\"]" "$repo:$id"
+    else
+      echo "# ruleset '$name' is not declared for the $tier tier: add it to extra_rulesets to manage it"
+    fi
   done < <(jq -r '.[] | [.id, .name] | @tsv' <<< "$rulesets_json")
-  known=("${STANDARD_LABELS[@]}" "${OPEN_LABELS[@]}")
   while IFS= read -r label; do
-    if printf '%s\n' "${known[@]}" | grep -qxF -- "$label"; then
+    if printf '%s\n' "${STANDARD_LABELS[@]}" | grep -qxF -- "$label"; then
       import_block "module.$module.github_issue_label.this[\"$label\"]" "$repo:$label"
+    elif printf '%s\n' "${OPEN_LABELS[@]}" | grep -qxF -- "$label"; then
+      echo "# label '$label' is an open contribution label: set open_contributions = true to manage it"
     else
       echo "# label '$label' is not standard: add it to extra_labels to manage it"
     fi
