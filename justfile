@@ -7,6 +7,7 @@ check:
     scripts/check-release-guard.sh
     scripts/check-renovate.sh
     scripts/check-tofu-env.sh
+    scripts/check-onboard.sh
     {{tofu}} fmt -check -recursive tofu
     {{tofu}} -chdir=tofu init -backend=false -input=false
     {{tofu}} -chdir=tofu validate
@@ -32,6 +33,9 @@ r2-session:
     for i in 0 1 2; do
       printf 'export %s=%q\n' "${names[i]}" "${values[i]}"
     done
+
+onboard repo tier:
+    scripts/onboard.sh {{repo}} {{tier}}
 
 plan target="": (_tofu "plan" target)
 
