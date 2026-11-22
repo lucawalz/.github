@@ -235,3 +235,27 @@ import {
   to = module.vigil.github_issue_label.this["help wanted"]
   id = "vigil:help wanted"
 }
+
+module "strata" {
+  source             = "./modules/standard"
+  name               = "strata"
+  tier               = "released"
+  required_check     = "ci-gate"
+  release_app        = local.release_app
+  open_contributions = true
+}
+
+import {
+  to = module.strata.github_repository.this
+  id = "strata"
+}
+
+import {
+  to = module.strata.github_issue_label.this["good first issue"]
+  id = "strata:good first issue"
+}
+
+import {
+  to = module.strata.github_issue_label.this["help wanted"]
+  id = "strata:help wanted"
+}
