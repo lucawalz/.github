@@ -74,6 +74,10 @@ has "$out" "== Before pushing callers =="
 has "$out" "code-scanning/default-setup"
 after="${out#*== After apply ==}"
 grep -qF 'default-setup' <<< "$after" && fail "CodeQL default setup still under After apply"
+has "$out" "== Before apply =="
+before_apply="${out%%== After apply ==*}"
+grep -qF 'settings/installations' <<< "${before_apply#*== Before apply ==}" || fail "release App install not under Before apply"
+grep -qF 'settings/installations' <<< "$after" && fail "release App install still under After apply"
 grep -q 'branches/main/protection' <<< "$out" && fail "classic protection step shown without protection"
 has "$out" 'to = module.oldrepo.github_repository_ruleset.this["release-tags-creation"]'
 grep -qF 'ruleset.this["mystery"]' <<< "$out" && fail "undeclared ruleset imported"
@@ -87,6 +91,7 @@ out="$(scripts/onboard.sh cfgrepo config 2>"$work/err")" || fail "config repo ru
 has "$out" 'to = module.cfgrepo.github_repository_ruleset.this["default-branch"]'
 grep -qF 'default-setup' <<< "$out" && fail "config tier prints CodeQL default setup"
 grep -qF 'Before pushing callers' <<< "$out" && fail "config tier prints Before pushing callers"
+grep -qF 'Before apply' <<< "$out" && fail "config tier prints Before apply"
 grep -qF 'ruleset.this["release-tags-creation"]' <<< "$out" && fail "config tier imported a release ruleset"
 has "$out" "# ruleset 'release-tags-creation'"
 has "$out" "extra_rulesets"

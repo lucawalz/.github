@@ -110,13 +110,18 @@ if ((exists)) && printf '%s\n' "${workflows[@]}" | grep -qxF codeql; then
   echo "gh api -X PATCH repos/$OWNER/$repo/code-scanning/default-setup -f state=not-configured   # only if CodeQL default setup is on, before the first codeql.yml run"
 fi
 
+if [[ $tier == released ]]; then
+  echo
+  echo "== Before apply =="
+  echo "release App installed: https://github.com/settings/installations, Configure, add $repo (the release tag ruleset names the App as a bypass actor)"
+fi
+
 echo
 echo "== After apply =="
 echo "gh api -X PUT repos/$OWNER/$repo/private-vulnerability-reporting"
 case "$tier" in
   released)
     echo "gh api -X PUT repos/$OWNER/$repo/immutable-releases   # after the first successful release"
-    echo "release App installed: https://github.com/settings/installations, Configure, add $repo (before the first release run)"
     ;;
   deployed | config)
     echo "gh api -X PATCH repos/$OWNER/$repo -f pull_request_creation_policy=collaborators_only"
