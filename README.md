@@ -20,7 +20,7 @@ The repository also holds the shared standard itself:
 
 Each repository belongs to one tier, which sets what it inherits and what it carries itself.
 
-| Element | Released software ([vigil](https://github.com/lucawalz/vigil), [horizon](https://github.com/lucawalz/horizon), .github) | Continuously deployed ([bedrock](https://github.com/lucawalz/bedrock), [blog](https://github.com/lucawalz/blog)) | Public config/profile ([dotfiles](https://github.com/lucawalz/dotfiles), [lucawalz](https://github.com/lucawalz/lucawalz)) | Private |
+| Element | Released software ([vigil](https://github.com/lucawalz/vigil), [horizon](https://github.com/lucawalz/horizon), [strata](https://github.com/lucawalz/strata), .github) | Continuously deployed ([bedrock](https://github.com/lucawalz/bedrock), [blog](https://github.com/lucawalz/blog)) | Public config/profile ([dotfiles](https://github.com/lucawalz/dotfiles), [lucawalz](https://github.com/lucawalz/lucawalz)) | Private |
 |---|---|---|---|---|
 | Community files | inherited plus own SECURITY, LICENSE | inherited plus own SECURITY, LICENSE | inherited, own LICENSE | inherited |
 | Default-branch ruleset | full | full | deletion and force-push block, signed commits; PR and required check where CI runs | per repository |
