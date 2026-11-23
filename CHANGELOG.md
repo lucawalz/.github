@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.0](https://github.com/lucawalz/.github/compare/v0.2.0...v0.3.0) (2026-11-23)
+
+
+### Features
+
+* **tofu:** add an onboard recipe that prepares repository adoption ([390b4fd](https://github.com/lucawalz/.github/commit/390b4fdafb9dd947424e58e47808c0f5121474ac))
+* **tofu:** adopt strata into the released tier ([586dd4b](https://github.com/lucawalz/.github/commit/586dd4bf8cf3bc39fb08551a108d91695378060c))
+* **tofu:** load r2 credentials per session and check inputs before planning ([8d38cc5](https://github.com/lucawalz/.github/commit/8d38cc546f627ec543aee68a0c640b5397089675))
+* **tofu:** plan and apply one repository with an optional key override ([3366878](https://github.com/lucawalz/.github/commit/3366878fe92fdfb02ea8c7917683c863f6761622))
+
+
+### Bug Fixes
+
+* **onboard:** import only declared rulesets and comment open labels ([3ec2fb0](https://github.com/lucawalz/.github/commit/3ec2fb0f71e9b18ea109035e399b3c5a2e209112))
+* **onboard:** install the release app before the apply ([7dbe2f4](https://github.com/lucawalz/.github/commit/7dbe2f47a656d8199537cdd1cf1baf45be354732))
+* **onboard:** note release pin timing and move codeql step before callers ([c27e354](https://github.com/lucawalz/.github/commit/c27e35465b1f2cf79dc78c66da837bf4d25980c8))
+* **onboard:** validate the repository argument against a strict pattern ([c530757](https://github.com/lucawalz/.github/commit/c53075727cffe6e488b6c01a3e7f3f9d4221a339))
+* **tofu:** harden recipe target checks and announce key override ([ddbaad8](https://github.com/lucawalz/.github/commit/ddbaad86e7a0e7f97385b79dce8f915a0d3f1964))
+* **tofu:** pass recipe arguments through the environment instead of text ([301da3c](https://github.com/lucawalz/.github/commit/301da3c4088525035d376a5c6927231c3b0320b0))
+* **tofu:** treat only a missing branch protection as unprotected when onboarding ([caa7e96](https://github.com/lucawalz/.github/commit/caa7e96bf5e2380e42229392e70822bad7086a0b))
+
 ## [0.2.0](https://github.com/lucawalz/.github/compare/v0.1.0...v0.2.0) (2026-11-19)
 
 
