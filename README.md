@@ -114,7 +114,7 @@ Resolve a tag to its commit SHA with `gh api repos/lucawalz/.github/commits/vX.Y
 | Workflow | Purpose | Inputs |
 |---|---|---|
 | `codeql.yml` | CodeQL analysis | `languages` (required); `go-version-file`, which installs the declared Go version before analysis. A repository with a `go.work` passes `go-version-file: go.work`, because the extractor otherwise runs an older Go that rejects the workspace. |
-| `zizmor.yml` | workflow security lint | none |
+| `zizmor.yml` | workflow security lint | `ref`, the ref to check out and scan (default empty, the triggering ref); `pull_request_target` callers pass the pull request head so its workflows are scanned |
 | `pr-title.yml` | Conventional Commits check on pull request titles | none |
 | `scorecard.yml` | OpenSSF Scorecard | none |
 | `dependabot-automerge.yml` | auto-merge of Dependabot updates | `update-types` (default `semver-minor,semver-patch`) |
