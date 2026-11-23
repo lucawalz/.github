@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/lucawalz/.github/compare/v0.3.0...v0.4.0) (2026-11-23)
+
+
+### Features
+
+* **workflows:** let zizmor callers choose the ref to scan ([4798b5e](https://github.com/lucawalz/.github/commit/4798b5e5e36aeed882d5005ecf11cdfa4bce9f43))
+
 ## [0.3.0](https://github.com/lucawalz/.github/compare/v0.2.0...v0.3.0) (2026-11-23)
 
 
