@@ -147,9 +147,12 @@ Repositories updated by Renovate extend the shared default preset in [renovate/d
 | `release_app` | release App id and key; required for released and only for it |
 | `open_contributions` | adds `good first issue` and `help wanted` |
 | `has_discussions` | Discussions outside the released tier |
+| `dependabot_security_updates` | Dependabot security update pull requests; `false` where Renovate covers them |
 | `extra_labels`, `extra_rulesets` | labels and rulesets beyond the standard |
 
 Labels outside the standard and the declared extras are left alone.
+
+Settings of repositories in [tofu/repos.tf](tofu/repos.tf) change only through this module; a fix found elsewhere becomes a change here, never a manual `gh api` call.
 
 The owner runs it from a workstation only; no CI job holds an admin token. `just plan` writes the encrypted plan to `tofu/tfplan` and `just apply` applies exactly that plan:
 

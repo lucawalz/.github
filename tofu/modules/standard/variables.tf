@@ -65,6 +65,12 @@ variable "has_discussions" {
   default = null
 }
 
+variable "dependabot_security_updates" {
+  type     = bool
+  default  = true
+  nullable = false
+}
+
 variable "release_app" {
   type = object({
     id          = string

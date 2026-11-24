@@ -55,6 +55,16 @@ run "released_repo" {
   }
 
   assert {
+    condition     = [for c in github_repository_ruleset.this["default-branch"].rules[0].required_status_checks[0].required_check : c.integration_id] == [15368]
+    error_message = "required checks must come from GitHub Actions"
+  }
+
+  assert {
+    condition     = github_repository_dependabot_security_updates.this.enabled
+    error_message = "Dependabot security updates must be enabled by default"
+  }
+
+  assert {
     condition     = github_repository_ruleset.this["default-branch"].rules[0].pull_request[0].required_approving_review_count == 0 && github_repository_ruleset.this["default-branch"].rules[0].pull_request[0].allowed_merge_methods == tolist(["squash"])
     error_message = "the default-branch ruleset must require a squash-merged PR with zero approvals"
   }
@@ -290,6 +300,35 @@ run "extra_ruleset" {
   assert {
     condition     = [for c in github_repository_ruleset.this["eval-baseline-gate"].rules[0].required_status_checks[0].required_check : c.context] == ["eval-gate"]
     error_message = "an extra ruleset must carry its declared checks"
+  }
+
+  assert {
+    condition     = [for c in github_repository_ruleset.this["eval-baseline-gate"].rules[0].required_status_checks[0].required_check : c.integration_id] == [15368]
+    error_message = "required checks must come from GitHub Actions"
+  }
+}
+
+run "dependabot_security_updates_off" {
+  command = plan
+
+  module {
+    source = "./modules/standard"
+  }
+
+  variables {
+    tier                        = "deployed"
+    release_app                 = null
+    dependabot_security_updates = false
+  }
+
+  assert {
+    condition     = !github_repository_dependabot_security_updates.this.enabled
+    error_message = "Dependabot security updates must follow the input"
+  }
+
+  assert {
+    condition     = github_repository_vulnerability_alerts.this.enabled
+    error_message = "vulnerability alerts must stay enabled"
   }
 }
 

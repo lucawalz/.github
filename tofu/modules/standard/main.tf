@@ -14,6 +14,8 @@ locals {
   admin_role_id = 5
   release_tags  = ["refs/tags/v*"]
 
+  github_actions_app_id = 15368
+
   admin_bypass = {
     actor_type  = "RepositoryRole"
     actor_id    = local.admin_role_id
@@ -139,7 +141,7 @@ resource "github_repository_vulnerability_alerts" "this" {
 
 resource "github_repository_dependabot_security_updates" "this" {
   repository = github_repository.this.name
-  enabled    = true
+  enabled    = var.dependabot_security_updates
   depends_on = [github_repository_vulnerability_alerts.this]
 }
 
@@ -201,7 +203,8 @@ resource "github_repository_ruleset" "this" {
         dynamic "required_check" {
           for_each = required_status_checks.value
           content {
-            context = required_check.value
+            context        = required_check.value
+            integration_id = local.github_actions_app_id
           }
         }
       }

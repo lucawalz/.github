@@ -115,6 +115,8 @@ module "bedrock" {
   tier           = "deployed"
   required_check = "ci-gate"
 
+  dependabot_security_updates = false
+
   extra_labels = {
     kubernetes    = { color = "326ce5", description = "Changes under kubernetes/" }
     hosts         = { color = "bfd4f2", description = "Changes under hosts/" }
