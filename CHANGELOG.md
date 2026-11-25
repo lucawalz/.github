@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/lucawalz/.github/compare/v0.4.0...v0.4.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **tofu:** bind required checks to github actions and keep bedrock exception ([30ac203](https://github.com/lucawalz/.github/commit/30ac203661e7020ff6b667619afa0688ed82cfbf))
+
 ## [0.4.0](https://github.com/lucawalz/.github/compare/v0.3.0...v0.4.0) (2026-11-23)
 
 
